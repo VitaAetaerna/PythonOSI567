@@ -4,65 +4,24 @@ import socket
 from cryptography.fernet import Fernet
 
 
-def encryptMessage(message, pw):
-    password = bytes(pw, "utf-8")
-
-    salt = os.urandom(16)
-
-    kdf = PBKDF2HMAC(
-
-        algorithm=hashes.SHA256(),
-
-        length=32,
-
-        salt=salt,
-
-        iterations=480000,
-
-    )
-
-    key = base64.urlsafe_b64encode(kdf.derive(password))
-
-    f = Fernet(key)
-
-    token = f.encrypt(b"".join(message))
-
-
+def encryptMessage(message):
+    key = b'TspyroLOHvwA9WNnoTtrWSghk_DiCEp5h-1u6BHr0xk='
+    fernet = Fernet(key)
+    token = fernet.encrypt(message)
     return token
 
-def decryptMessage(message, pw):
-    
-    password = bytes(pw, "utf-8")
-    salt = os.urandom(16)
-
-    kdf = PBKDF2HMAC(
-
-        algorithm=hashes.SHA256(),
-
-        length=32,
-
-        salt=salt,
-
-        iterations=480000,
-
-    )
-
-    key = base64.urlsafe_b64encode(kdf.derive(password))
-
-    f = Fernet(key)
-
-    token = f.decrypt(b"".join(message))
-
-
+def decryptMessage(message):
+    key = b'TspyroLOHvwA9WNnoTtrWSghk_DiCEp5h-1u6BHr0xk='
+    fernet = Fernet(key)
+    token = fernet.decrypt(message)
     return token
+
+
 ip = socket.gethostbyname(socket.gethostname())
 
 socketclient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 socketclient.connect((ip, 1500))
-print("Enter your name: ")
-pw = input(" ")
-socketclient.send(bytes(encryptMessage(pw,pw)))
 while True: 
-    data = decryptMessage(socketclient.recv(), pw)
+    #data = decryptMessage(socketclient.recv(1024).decode("utf-8"))
     msg = input("Enter message: ")
-    socketclient.send(bytes(encrypt(msg, msg)))
+    socketclient.send(bytes(encryptMessage(msg), "utf-8"))

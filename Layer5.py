@@ -3,62 +3,37 @@ import sys
 import threading
 from cryptography.fernet import Fernet
 import os
-def encryptMessage(message, pw):
-    password = bytes(pw, "utf-8")
-    salt = os.urandom(16)
 
-    kdf = PBKDF2HMAC(
-
-        algorithm=hashes.SHA256(),
-
-        length=32,
-
-        salt=salt,
-
-        iterations=480000,
-
-    )
-
-    key = base64.urlsafe_b64encode(kdf.derive(password))
-
-    f = Fernet(key)
-
-    token = f.encrypt(b"".join(message))
-
-
+def encryptMessage(message):
+    key = b'TspyroLOHvwA9WNnoTtrWSghk_DiCEp5h-1u6BHr0xk='
+    fernet = Fernet(key)
+    token = fernet.encrypt(message)
+    print(token)
     return token
 
-def decryptMessage(message, pw):
-    
-    password = bytes(pw, "utf-8")
-    salt = os.urandom(16)
-
-    kdf = PBKDF2HMAC(
-
-        algorithm=hashes.SHA256(),
-
-        length=32,
-
-        salt=salt,
-
-        iterations=480000,
-
-    )
-
-    key = base64.urlsafe_b64encode(kdf.derive(password))
-
-    f = Fernet(key)
-
-    token = f.decrypt(b"".join(message))
-
-
-    return token
-pwset = False
-pw = ""
+def decryptMessage(message):
+    try:
+        print("Decrypt envoked")
+        key = b'TspyroLOHvwA9WNnoTtrWSghk_DiCEp5h-1u6BHr0xk='
+        print("Key loaded")
+        fernet = Fernet(key)
+        print("fernet initialized")
+        token = fernet.decrypt(message)
+        print("Message decrypted")
+        return token
+    except Exception as e:
+        print(e)
 
 
 
-def createSocketServer(ip, port, listeners):
+
+
+
+if __name__ == "__main__":
+    ip = "0.0.0.0"
+    port = 1500
+    listeners = 1
+
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverSocket.bind((ip, port))
     serverSocket.listen(listeners)
@@ -67,26 +42,21 @@ def createSocketServer(ip, port, listeners):
     print("Connected to ", ip)
 
     try:
-        if pwset == False:
-            data = conn.recv(1024)
-            data.decode("utf-8")
-            decpw = decryptMessage(data, pw)
-            pw = decpw
-            print(decpw)
-            conn.send(bytes(encryptMessage("Hello {}".format(data), pw), "utf-8"))
-            pwset = True
-    except Exception as e:
-        print("There was an Error, {}".format(e))
-    
-    data = conn.recv(1024)
-    data.decode("utf-8")
-    print(data)
-    if decryptMessage(data, pw) == "Exit":
-        conn.send(bytes(encryptMessage("Bye {}".format(data),pw), "utf-8"))
+        rawdata = conn.recv(1024)
+        print(".")
+        # data.decode("utf-8")
+        # decpw = decryptMessage(data)
 
-if __name__ == "__main__":
-    ip = socket.gethostbyname(socket.gethostname())
-    port = 1500
-    listeners = 2
-    threadingServer = threading.Thread(createSocketServer(ip=ip, port=port, listeners=listeners))
-    threadingServer.start()
+        data = decryptMessage(rawdata)
+        print("..")
+        print(data)
+        # conn.send(bytes(encryptMessage("Hello {}".format(data)), "utf-8"))
+        print("...")
+        
+    except Exception as e:
+        print("There was an Error, ", e)
+        serverSocket.close()
+        sys.exit()
+    
+    
+    
